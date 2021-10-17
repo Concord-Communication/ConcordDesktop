@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.concordcommunication.desktop.MainViewController">
+   <children>
+      <MenuBar>
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+            <Menu mnemonicParsing="false" text="Server">
+               <items>
+                  <MenuItem mnemonicParsing="false" onAction="#openConnectToServerDialog" text="Connect" />
+               </items>
+            </Menu>
+          <Menu mnemonicParsing="false" text="Edit">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Delete" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <BorderPane VBox.vgrow="ALWAYS">
+         <left>
+            <VBox prefWidth="200.0" BorderPane.alignment="TOP_LEFT">
+               <children>
+                  <FlowPane>
+                     <children>
+                        <Label fx:id="serverNameLabel" text="Server Name" />
+                     </children>
+                  </FlowPane>
+                  <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER">
+                     <content>
+                        <VBox fx:id="serverChannelsBox">
+                           <children>
+                              <Label text="Label" />
+                              <Label text="Label" />
+                           </children>
+                        </VBox>
+                     </content>
+                  </ScrollPane>
+               </children></VBox>
+         </left>
+         <right>
+            <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER" />
+         </right>
+         <center>
+            <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <bottom>
+                  <TextArea fx:id="chatInputArea" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="BOTTOM_CENTER" />
+               </bottom>
+               <center>
+                  <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-focus-color: transparent; -fx-faint-focus-color: transparent;" vbarPolicy="ALWAYS" BorderPane.alignment="CENTER">
+                     <content>
+                        <VBox fx:id="chatBox">
+                           <children>
+                              <FlowPane>
+                                 <children>
+                                    <Label text="10:35" />
+                                    <Label text="andrew">
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets>
+                                       <FlowPane.margin>
+                                          <Insets left="5.0" right="5.0" />
+                                       </FlowPane.margin>
+                                    </Label>
+                                    <Label text="Feugiat in fermentum posuere urna nec tincidunt praesent semper feugiat. Diam maecenas ultricies mi eget mauris pharetra. Morbi enim nunc faucibus a pellentesque sit amet. A lacus vestibulum sed arcu. Vestibulum morbi blandit cursus risus. Molestie nunc non blandit massa enim nec. Morbi tristique senectus et netus et malesuada fames ac. Duis at consectetur lorem donec massa sapien faucibus. Porttitor eget dolor morbi non arcu. Id aliquet risus feugiat in ante metus dictum at. Purus sit amet volutpat consequat mauris." wrapText="true" />
+                                 </children>
+                              </FlowPane>
+                           </children></VBox>
+                     </content>
+                  </ScrollPane>
+               </center>
+            </BorderPane>
+         </center></BorderPane>
+   </children>
+</VBox>
