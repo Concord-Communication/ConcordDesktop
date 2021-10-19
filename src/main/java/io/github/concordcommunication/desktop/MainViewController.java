@@ -1,5 +1,6 @@
 package io.github.concordcommunication.desktop;
 
+import io.github.concordcommunication.desktop.client.ConcordClient;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,6 +31,7 @@ public class MainViewController {
 		ConnectToServerDialogController controller = loader.getController();
 		controller.onComplete(serverConnectData -> {
 			System.out.println(serverConnectData);
+			var client = new ConcordClient(serverConnectData.address(), serverConnectData.username(), serverConnectData.password());
 			// TODO: Try to log into server, set access token, and connect to websocket, and update all state.
 		});
 		Scene scene = new Scene(parent);
