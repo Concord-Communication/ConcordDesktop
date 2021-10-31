@@ -11,7 +11,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static io.github.concordcommunication.desktop.client.ConcordClient.mapper;
+import static io.github.concordcommunication.desktop.client.ConcordApi.mapper;
 
 public class ConcordWebsocketClient extends WebSocketClient {
 	private final List<ConcordEventListener> eventListeners = new CopyOnWriteArrayList<>();

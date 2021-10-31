@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+      minWidth="-Infinity"
+      xmlns="http://javafx.com/javafx/11.0.2"
+      fx:controller="io.github.concordcommunication.desktop.control.ServerViewController"
+>
+   <children>
+      <FlowPane alignment="CENTER_LEFT" prefHeight="30.0">
+         <children>
+            <Label fx:id="channelNameLabel" text="Channel Name" />
+            <Separator orientation="VERTICAL" />
+            <Label fx:id="channelDescriptionLabel" text="Channel description" />
+         </children>
+         <padding>
+            <Insets left="5.0" right="5.0" />
+         </padding>
+      </FlowPane>
+      <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS" VBox.vgrow="ALWAYS" />
+      <HBox prefHeight="100.0">
+         <children>
+            <TextArea fx:id="chatTextArea" onKeyPressed="#onChatKeyPressed" wrapText="true" HBox.hgrow="ALWAYS" />
+            <VBox>
+               <children>
+                  <Button mnemonicParsing="false" text="Button" />
+                  <Button mnemonicParsing="false" text="Button" />
+                  <Button mnemonicParsing="false" text="Button" />
+                  <Button mnemonicParsing="false" text="Button" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </children>
+</VBox>

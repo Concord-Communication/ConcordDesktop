@@ -13,4 +13,7 @@ module io.github.concordcommunication.desktop {
 
 	opens io.github.concordcommunication.desktop to javafx.fxml;
 	exports io.github.concordcommunication.desktop;
+	exports io.github.concordcommunication.desktop.control;
+	exports io.github.concordcommunication.desktop.model;
+	opens io.github.concordcommunication.desktop.control to javafx.fxml;
 }

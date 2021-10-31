@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.concordcommunication.desktop.client.dto.ConcordWebsocketClient;
+import javafx.scene.image.Image;
 
 import java.io.IOException;
 import java.net.URI;
@@ -12,11 +13,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-public class ConcordClient {
+public class ConcordApi {
 	public static final ObjectMapper mapper = new ObjectMapper();
 
-	private final HttpClient httpClient = HttpClient.newHttpClient();
+	private final HttpClient httpClient;
+	private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 	private ConcordWebsocketClient webSocketClient;
 	private String address;
 	private String username;
@@ -25,28 +29,38 @@ public class ConcordClient {
 	private String token;
 	private String baseApiUrl;
 
-	public ConcordClient(String address, String username, String password) {
+	public ConcordApi(String address, String username, String password) {
+		this.httpClient = HttpClient.newBuilder().executor(this.executorService).build();
 		this.address = address;
 		this.username = username;
 		this.password = password;
 		this.baseApiUrl = "http://" + address + "/api";
-		post("/api/tokens", mapper.createObjectNode()
-				.put("username", this.username)
-				.put("password", this.password),
+
+	}
+
+	/**
+	 * Obtains a token with this client's credentials, and connects to the
+	 * server's websocket.
+	 * @return A completable future that resolves once a connection is established.
+	 */
+	public CompletableFuture<Void> connect() {
+		return postAnonJson("/tokens", mapper.createObjectNode()
+						.put("username", this.username)
+						.put("password", this.password),
 				JsonNode.class
 		).thenAcceptAsync(node -> {
 			this.token = node.get("token").asText();
 			this.webSocketClient = new ConcordWebsocketClient(URI.create("ws://" + address + "/client?token=" + this.token));
 			this.webSocketClient.connect();
-		}).join();
+		});
 	}
 
 	public void addListener(ConcordEventListener listener) {
 		this.webSocketClient.addListener(listener);
 	}
 
-	public <T> CompletableFuture<T> get(String url, Class<T> type) {
-		var request = HttpRequest.newBuilder(URI.create(url))
+	public <T> CompletableFuture<T> getJson(String url, Class<T> type) {
+		var request = HttpRequest.newBuilder(URI.create(this.baseApiUrl + url))
 				.GET()
 				.header("Authorization", "Bearer " + this.token)
 				.header("Accept", "application/json")
@@ -55,7 +69,7 @@ public class ConcordClient {
 		return requestJson(request, type);
 	}
 
-	public <T> CompletableFuture<T> post(String url, Object body, Class<T> responseType) {
+	public <T> CompletableFuture<T> postAnonJson(String url, Object body, Class<T> responseType) {
 		var request = HttpRequest.newBuilder(URI.create(this.baseApiUrl + url))
 				.POST(jsonPublisher(body))
 				.header("Content-Type", "application/json")
@@ -64,7 +78,7 @@ public class ConcordClient {
 		return requestJson(request, responseType);
 	}
 
-	public <T> CompletableFuture<T> requestJson(HttpRequest request, Class<T> type) {
+	private <T> CompletableFuture<T> requestJson(HttpRequest request, Class<T> type) {
 		return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
 				.thenApply(response -> {
 					try {
@@ -73,6 +87,16 @@ public class ConcordClient {
 						throw new RuntimeException(e);
 					}
 				});
+	}
+
+	public CompletableFuture<Image> getImage(long id) {
+		var request = HttpRequest.newBuilder(URI.create(this.baseApiUrl + "/images/" + id))
+				.GET()
+				.header("Authorization", "Bearer " + this.token)
+				.header("Accept", "*/*")
+				.build();
+		return this.httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
+				.thenApplyAsync(resp -> new Image(resp.body()));
 	}
 
 	public static HttpRequest.BodyPublisher jsonPublisher(Object obj) {

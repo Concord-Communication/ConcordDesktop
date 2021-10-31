@@ -1,5 +1,6 @@
-package io.github.concordcommunication.desktop;
+package io.github.concordcommunication.desktop.control;
 
+import io.github.concordcommunication.desktop.ServerConnectData;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
