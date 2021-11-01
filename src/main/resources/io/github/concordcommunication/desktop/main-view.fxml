@@ -4,33 +4,19 @@
 <?import javafx.scene.layout.*?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.concordcommunication.desktop.control.MainViewController">
-   <children>
-      <MenuBar>
-        <menus>
-          <Menu mnemonicParsing="false" text="File">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Close" />
-            </items>
-          </Menu>
-            <Menu mnemonicParsing="false" text="Server">
-               <items>
-                  <MenuItem mnemonicParsing="false" onAction="#openConnectToServerDialog" text="Connect" />
-               </items>
-            </Menu>
-          <Menu mnemonicParsing="false" text="Help">
-            <items>
-              <MenuItem mnemonicParsing="false" text="About" />
-            </items>
-          </Menu>
-        </menus>
-      </MenuBar>
-      <BorderPane fx:id="mainBorderPane" VBox.vgrow="ALWAYS">
-         <left>
-            <Accordion fx:id="serversAccordion" prefWidth="200.0" BorderPane.alignment="CENTER" />
-         </left>
-         <center>
-            <AnchorPane fx:id="centerAnchorPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
-         </center>
-      </BorderPane>
-   </children>
+    <MenuBar>
+        <Menu mnemonicParsing="false" text="File">
+            <MenuItem mnemonicParsing="false" text="Close" />
+        </Menu>
+        <Menu mnemonicParsing="false" text="Server">
+            <MenuItem mnemonicParsing="false" onAction="#openConnectToServerDialog" text="Connect" />
+        </Menu>
+        <Menu mnemonicParsing="false" text="Help">
+            <MenuItem mnemonicParsing="false" text="About" />
+        </Menu>
+    </MenuBar>
+    <HBox VBox.vgrow="ALWAYS">
+        <Accordion fx:id="serversAccordion" prefWidth="200.0"/>
+        <AnchorPane fx:id="centerViewPane" HBox.hgrow="ALWAYS"/>
+    </HBox>
 </VBox>

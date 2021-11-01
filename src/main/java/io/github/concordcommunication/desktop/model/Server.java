@@ -3,7 +3,10 @@ package io.github.concordcommunication.desktop.model;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.concordcommunication.desktop.client.ConcordApi;
-import javafx.beans.property.*;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -22,14 +25,13 @@ public class Server {
 		this.icon = new SimpleObjectProperty<>(null);
 		this.channels = FXCollections.observableArrayList();
 		if (iconId != null) {
-			concordApi.getImage(iconId).thenAcceptAsync(image -> this.icon.setValue(image));
+			concordApi.getImage(iconId).thenAcceptAsync(this.icon::setValue);
 		}
 		concordApi.getJson("/channels", ArrayNode.class)
 				.thenAcceptAsync(channelsArray -> {
-					System.out.println("Got channels: " + channelsArray.toString());
 					this.channels.clear();
 					for (var channelJson : channelsArray) {
-						this.channels.add(Channel.fromJson((ObjectNode) channelJson));
+						this.channels.add(Channel.fromJson(this, (ObjectNode) channelJson));
 					}
 				});
 	}

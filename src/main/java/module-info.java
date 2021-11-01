@@ -16,4 +16,6 @@ module io.github.concordcommunication.desktop {
 	exports io.github.concordcommunication.desktop.control;
 	exports io.github.concordcommunication.desktop.model;
 	opens io.github.concordcommunication.desktop.control to javafx.fxml;
+	opens io.github.concordcommunication.desktop.client.dto.websocket to com.fasterxml.jackson.databind;
+	opens io.github.concordcommunication.desktop.client.dto.api to com.fasterxml.jackson.databind;
 }

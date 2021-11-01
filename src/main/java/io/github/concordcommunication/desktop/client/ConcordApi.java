@@ -1,6 +1,7 @@
 package io.github.concordcommunication.desktop.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.concordcommunication.desktop.client.dto.ConcordWebsocketClient;
@@ -18,10 +19,14 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class ConcordApi {
 	public static final ObjectMapper mapper = new ObjectMapper();
+	static {
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+	}
 
 	private final HttpClient httpClient;
 	private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 	private ConcordWebsocketClient webSocketClient;
+
 	private String address;
 	private String username;
 	private String password;
@@ -35,7 +40,6 @@ public class ConcordApi {
 		this.username = username;
 		this.password = password;
 		this.baseApiUrl = "http://" + address + "/api";
-
 	}
 
 	/**
@@ -66,7 +70,7 @@ public class ConcordApi {
 				.header("Accept", "application/json")
 				.timeout(Duration.ofSeconds(3))
 				.build();
-		return requestJson(request, type);
+		return sendJsonRequest(request, type);
 	}
 
 	public <T> CompletableFuture<T> postAnonJson(String url, Object body, Class<T> responseType) {
@@ -75,10 +79,20 @@ public class ConcordApi {
 				.header("Content-Type", "application/json")
 				.header("Accept", "application/json")
 				.build();
-		return requestJson(request, responseType);
+		return sendJsonRequest(request, responseType);
 	}
 
-	private <T> CompletableFuture<T> requestJson(HttpRequest request, Class<T> type) {
+	public <T> CompletableFuture<T> postJson(String url, Object body, Class<T> responseType) {
+		var request = HttpRequest.newBuilder(URI.create(this.baseApiUrl + url))
+				.POST(jsonPublisher(body))
+				.header("Content-Type", "application/json")
+				.header("Accept", "application/json")
+				.header("Authorization", "Bearer " + this.token)
+				.build();
+		return sendJsonRequest(request, responseType);
+	}
+
+	private <T> CompletableFuture<T> sendJsonRequest(HttpRequest request, Class<T> type) {
 		return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
 				.thenApply(response -> {
 					try {

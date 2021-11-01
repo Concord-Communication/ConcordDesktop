@@ -1,6 +1,7 @@
 package io.github.concordcommunication.desktop.control;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.github.concordcommunication.desktop.ServerConnectData;
 import io.github.concordcommunication.desktop.client.ConcordApi;
 import io.github.concordcommunication.desktop.model.ClientModel;
 import io.github.concordcommunication.desktop.model.Server;
@@ -23,10 +24,21 @@ public class MainViewController {
 	@FXML
 	public BorderPane mainBorderPane;
 	@FXML
-	public AnchorPane centerAnchorPane;
+	public AnchorPane centerViewPane;
 
 	public void initialize() {
-		ClientModel.INSTANCE.getServers().addListener(new ServersListChangeListener(serversAccordion, centerAnchorPane));
+		ClientModel.INSTANCE.getServers().addListener(new ServersListChangeListener(serversAccordion, centerViewPane));
+		var serverConnectData = new ServerConnectData("localhost:8080", "admin", "kiSnfO4U5GUvdxDYWT7omb7eA2zHyuja7kS7BJgX");
+		var api = new ConcordApi(serverConnectData.address(), serverConnectData.username(), serverConnectData.password());
+		var connectionFuture = api.connect();
+		connectionFuture.thenComposeAsync(unused -> api.getJson("/server", ObjectNode.class))
+				.thenAccept(data -> {
+					String name = data.get("name").asText();
+					String description = data.get("description").asText();
+					Long iconId = data.get("iconId").asLong();
+					var server = new Server(api, name, description, iconId);
+					ClientModel.INSTANCE.addServer(server);
+				});
 	}
 
 	@FXML

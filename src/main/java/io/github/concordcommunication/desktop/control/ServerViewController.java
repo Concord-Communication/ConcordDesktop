@@ -13,15 +13,15 @@ public class ServerViewController {
 	@FXML
 	public Label channelDescriptionLabel;
 	@FXML
-	public VBox channelMessagesVBox;
-	@FXML
 	public TextArea chatTextArea;
-
+	@FXML
+	public VBox messagesVBox;
 
 	public void onChatKeyPressed(KeyEvent keyEvent) {
 		String text = chatTextArea.getText();
 		if (!keyEvent.isShiftDown() && keyEvent.getCode().equals(KeyCode.ENTER) && !text.isBlank()) {
 			String msg = text.trim();
+
 			System.out.println("Sending message: \"" + msg + "\"");
 			chatTextArea.setText("");
 		}

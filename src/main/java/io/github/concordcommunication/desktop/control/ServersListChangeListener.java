@@ -12,7 +12,6 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.util.HashMap;

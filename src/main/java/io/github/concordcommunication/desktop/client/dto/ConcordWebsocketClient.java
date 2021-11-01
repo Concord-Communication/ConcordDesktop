@@ -7,26 +7,35 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 import static io.github.concordcommunication.desktop.client.ConcordApi.mapper;
 
 public class ConcordWebsocketClient extends WebSocketClient {
-	private final List<ConcordEventListener> eventListeners = new CopyOnWriteArrayList<>();
+	private final List<WeakReference<ConcordEventListener>> eventListeners = new CopyOnWriteArrayList<>();
 
 	public ConcordWebsocketClient(URI serverUri) {
 		super(serverUri);
 	}
 
 	public void addListener(ConcordEventListener listener) {
-		this.eventListeners.add(listener);
+		this.eventListeners.add(new WeakReference<>(listener));
+	}
+
+	private void forEach(Consumer<ConcordEventListener> c) {
+		this.eventListeners.forEach(ref -> {
+			var listener = ref.get();
+			if (listener != null) c.accept(listener);
+		});
 	}
 
 	@Override
 	public void onOpen(ServerHandshake handshakedata) {
-		eventListeners.forEach(ConcordEventListener::onConnect);
+		forEach(ConcordEventListener::onConnect);
 	}
 
 	@Override
@@ -38,7 +47,7 @@ public class ConcordWebsocketClient extends WebSocketClient {
 			switch (type) {
 				case "chat_sent" -> {
 					var msg = mapper.treeToValue(node, ChatSent.class);
-					eventListeners.forEach(l -> l.onChatSent(msg));
+					forEach(l -> l.onChatSent(msg));
 				}
 			}
 		} catch (IOException e) {
@@ -48,7 +57,7 @@ public class ConcordWebsocketClient extends WebSocketClient {
 
 	@Override
 	public void onClose(int code, String reason, boolean remote) {
-		eventListeners.forEach(ConcordEventListener::onDisconnect);
+		forEach(ConcordEventListener::onDisconnect);
 	}
 
 	@Override
