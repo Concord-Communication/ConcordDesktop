@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <VBox minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.2"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="io.github.concordcommunication.desktop.control.ServerViewController">
@@ -19,7 +18,7 @@
       <VBox fx:id="messagesVBox"/>
    </ScrollPane>
    <HBox prefHeight="100.0">
-      <TextArea fx:id="chatTextArea" onKeyPressed="#onChatKeyPressed" wrapText="true"
+      <TextArea fx:id="chatTextArea" wrapText="true"
                 HBox.hgrow="ALWAYS"/>
       <VBox>
          <Button mnemonicParsing="false" text="Button"/>

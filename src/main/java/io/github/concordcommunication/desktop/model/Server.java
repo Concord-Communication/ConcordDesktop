@@ -17,6 +17,7 @@ public class Server {
 	private final StringProperty description;
 	private final ObjectProperty<Image> icon;
 	private final ObservableList<Channel> channels;
+	private final ObservableList<User> users;
 
 	public Server(ConcordApi concordApi, String name, String description, Long iconId) {
 		this.concordApi = concordApi;
@@ -24,6 +25,7 @@ public class Server {
 		this.description = new SimpleStringProperty(description);
 		this.icon = new SimpleObjectProperty<>(null);
 		this.channels = FXCollections.observableArrayList();
+		this.users = FXCollections.observableArrayList();
 		if (iconId != null) {
 			concordApi.getImage(iconId).thenAcceptAsync(this.icon::setValue);
 		}
@@ -33,6 +35,10 @@ public class Server {
 					for (var channelJson : channelsArray) {
 						this.channels.add(Channel.fromJson(this, (ObjectNode) channelJson));
 					}
+				});
+		concordApi.getJson("/users", ArrayNode.class)
+				.thenAcceptAsync(usersArray -> {
+					System.out.println(usersArray.toPrettyString());
 				});
 	}
 

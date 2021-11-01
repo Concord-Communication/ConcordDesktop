@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.github.concordcommunication.desktop.client.dto.ConcordWebsocketClient;
+import io.github.concordcommunication.desktop.client.dto.api.ServerData;
 import javafx.scene.image.Image;
 
 import java.io.IOException;
@@ -24,7 +26,7 @@ public class ConcordApi {
 	}
 
 	private final HttpClient httpClient;
-	private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+	private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
 	private ConcordWebsocketClient webSocketClient;
 
 	private String address;
@@ -56,6 +58,11 @@ public class ConcordApi {
 			this.token = node.get("token").asText();
 			this.webSocketClient = new ConcordWebsocketClient(URI.create("ws://" + address + "/client?token=" + this.token));
 			this.webSocketClient.connect();
+		}).thenRunAsync(() -> {
+			getJson("/users", ArrayNode.class)
+					.thenAcceptAsync(usersArray -> {
+
+					});
 		});
 	}
 
@@ -111,6 +118,10 @@ public class ConcordApi {
 				.build();
 		return this.httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
 				.thenApplyAsync(resp -> new Image(resp.body()));
+	}
+
+	public CompletableFuture<ServerData> getServerData() {
+		return getJson("/server", ServerData.class);
 	}
 
 	public static HttpRequest.BodyPublisher jsonPublisher(Object obj) {
