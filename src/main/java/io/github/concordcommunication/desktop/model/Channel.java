@@ -2,20 +2,24 @@ package io.github.concordcommunication.desktop.model;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.github.concordcommunication.desktop.client.ConcordApi;
+import io.github.concordcommunication.desktop.client.dto.api.ChatResponse;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Channel {
+	private final ConcordApi api;
 	private final Server server;
-	private LongProperty id;
-	private StringProperty name;
-	private StringProperty description;
-	private IntegerProperty ordinality;
-	private ObservableList<Channel> children;
-	private ObservableList<Chat> chats;
+	private final LongProperty id;
+	private final StringProperty name;
+	private final StringProperty description;
+	private final IntegerProperty ordinality;
+	private final ObservableList<Channel> children;
+	private final ObservableList<Chat> chats;
 
 	public Channel(Server server, long id, String name, String description, int ordinality) {
+		this.api = server.getConcordApi();
 		this.server = server;
 		this.id = new SimpleLongProperty(id);
 		this.name = new SimpleStringProperty(name);
@@ -23,6 +27,14 @@ public class Channel {
 		this.ordinality = new SimpleIntegerProperty(ordinality);
 		this.children = FXCollections.observableArrayList();
 		this.chats = FXCollections.observableArrayList();
+		this.api.getJson("/channels/" + id + "/chats/latest", ChatResponse[].class)
+				.thenAcceptAsync(chatsArray -> {
+					this.chats.clear();
+					for (var c : chatsArray) {
+						Chat chat = new Chat(this, c.id(), c.createdAt(), c.authorId(), c.channelId(), c.threadId(), c.content(), c.edited());
+						this.chats.add(0, chat);
+					}
+				});
 	}
 
 	public static Channel fromJson(Server server, ObjectNode node) {
@@ -38,6 +50,15 @@ public class Channel {
 			}
 		}
 		return channel;
+	}
+
+	public void appendChat(Chat chat) {
+		if (!this.chats.contains(chat)) {
+			this.chats.add(chat);
+			if (this.chats.size() > 100) {
+				this.chats.remove(0);
+			}
+		}
 	}
 
 	public Server getServer() {

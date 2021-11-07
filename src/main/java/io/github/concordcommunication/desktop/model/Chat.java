@@ -2,7 +2,8 @@ package io.github.concordcommunication.desktop.model;
 
 import javafx.beans.property.*;
 
-public class Chat {
+public class Chat implements Comparable<Chat> {
+	private final Channel channel;
 	private final LongProperty id;
 	private final LongProperty createdAt;
 	private final LongProperty authorId;
@@ -11,7 +12,8 @@ public class Chat {
 	private final StringProperty content;
 	private final BooleanProperty edited;
 	// TODO: Add reaction data.
-	public Chat(long id, long createdAt, long authorId, long channelId, Long threadId, String content, boolean edited) {
+	public Chat(Channel channel, long id, long createdAt, long authorId, long channelId, Long threadId, String content, boolean edited) {
+		this.channel = channel;
 		this.id = new SimpleLongProperty(id);
 		this.createdAt = new SimpleLongProperty(createdAt);
 		this.authorId = new SimpleLongProperty(authorId);
@@ -19,6 +21,10 @@ public class Chat {
 		this.threadId = new SimpleObjectProperty<>(threadId);
 		this.content = new SimpleStringProperty(content);
 		this.edited = new SimpleBooleanProperty(edited);
+	}
+
+	public Channel getChannel() {
+		return channel;
 	}
 
 	public long getId() {
@@ -75,5 +81,20 @@ public class Chat {
 
 	public BooleanProperty editedProperty() {
 		return edited;
+	}
+
+	@Override
+	public int compareTo(Chat o) {
+		return Long.compare(this.getCreatedAt(), o.getCreatedAt());
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return o instanceof Chat other && this.getId() == other.getId();
+	}
+
+	@Override
+	public int hashCode() {
+		return Long.hashCode(this.getId());
 	}
 }

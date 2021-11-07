@@ -1,19 +1,17 @@
 package io.github.concordcommunication.desktop.control;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.github.concordcommunication.desktop.client.ConcordApi;
-import io.github.concordcommunication.desktop.client.ConcordEventListener;
-import io.github.concordcommunication.desktop.client.dto.api.ChatResponse;
-import io.github.concordcommunication.desktop.client.dto.websocket.ChatSent;
+import io.github.concordcommunication.desktop.control.channel.ChannelChatAppender;
+import io.github.concordcommunication.desktop.control.channel.ChannelChatAreaKeyListener;
+import io.github.concordcommunication.desktop.control.channel.ChannelChatListChangeListener;
 import io.github.concordcommunication.desktop.model.Channel;
-import io.github.concordcommunication.desktop.model.Chat;
+import io.github.concordcommunication.desktop.view.ChatElement;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.TreeItem;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 
@@ -51,34 +49,34 @@ public class SelectedChannelChangeListener implements ChangeListener<TreeItem<Ch
 			throw new UncheckedIOException(e);
 		}
 		ServerViewController serverViewController = serverViewLoader.getController();
+		var scrollPane = serverViewController.chatScrollPane;
+
 		serverViewController.channelNameLabel.textProperty().bind(channel.nameProperty());
 		serverViewController.channelDescriptionLabel.textProperty().bind(channel.descriptionProperty());
-		channel.getChats().addListener(new ChannelChatsListChangeListener(serverViewController.messagesVBox));
-		channel.getServer().getConcordApi().addListener(new ConcordEventListener() {
-			@Override
-			public void onChatSent(ChatSent event) {
-				var c = event.chat();
-				channel.getChats().add(new Chat(c.id(), c.createdAt(), c.authorId(), c.channelId(), c.threadId(), c.content(), c.edited()));
+		channel.getChats().addListener(new ChannelChatListChangeListener(serverViewController.messagesVBox.getChildren(), scrollPane));
+		// Weird trick to clamp scrollpane to bottom when user scrolls to bottom.
+		InvalidationListener heightListener = observable -> scrollPane.setVvalue(1.0);
+		scrollPane.vvalueProperty().addListener((observable, oldValue, newValue) -> {
+			if (oldValue.doubleValue() < 1.0 && newValue.doubleValue() == 1.0) {
+				serverViewController.messagesVBox.heightProperty().addListener(heightListener);
+			} else if (oldValue.doubleValue() == 1.0 && newValue.doubleValue() < 1.0) {
+				serverViewController.messagesVBox.heightProperty().removeListener(heightListener);
 			}
 		});
-		serverViewController.chatTextArea.addEventHandler(KeyEvent.KEY_PRESSED, keyEvent -> {
-			String text = serverViewController.chatTextArea.getText();
-			if (!keyEvent.isShiftDown() && keyEvent.getCode().equals(KeyCode.ENTER) && !text.isBlank()) {
-				String msg = text.trim();
-				keyEvent.consume();
-				System.out.println("Sending message: \"" + msg + "\"");
-				serverViewController.chatTextArea.setText("");
-				ObjectNode body = ConcordApi.mapper.createObjectNode().put("content", msg);
-				channel.getServer().getConcordApi().postJson("/channels/" + channel.getId() + "/chats", body, ChatResponse.class)
-						.thenAcceptAsync(c -> {
-							channel.getChats().add(new Chat(c.id(), c.createdAt(), c.authorId(), c.channelId(), c.threadId(), c.content(), c.edited()));
-						});
-			}
+		channel.getServer().getConcordApi().addListener(new ChannelChatAppender(channel));
+		serverViewController.chatTextArea.addEventHandler(KeyEvent.KEY_PRESSED, new ChannelChatAreaKeyListener(channel, serverViewController.chatTextArea));
+		// init with current chats
+		Platform.runLater(() -> {
+			var nodes = channel.getChats().stream().map(ChatElement::new).toList();
+			serverViewController.messagesVBox.getChildren().addAll(nodes);
 		});
+
 		AnchorPane.setTopAnchor(serverView, 0.0);
 		AnchorPane.setBottomAnchor(serverView, 0.0);
 		AnchorPane.setLeftAnchor(serverView, 0.0);
 		AnchorPane.setRightAnchor(serverView, 0.0);
 		return serverView;
 	}
+
+
 }

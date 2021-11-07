@@ -1,5 +1,6 @@
 package io.github.concordcommunication.desktop;
 
+import io.github.concordcommunication.desktop.model.ClientModel;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,6 +15,9 @@ public class ConcordDesktop extends Application {
 		Scene scene = new Scene(fxmlLoader.load(), 1000, 600);
 		stage.setTitle("Concord Desktop");
 		stage.setScene(scene);
+		stage.setOnCloseRequest(event -> {
+			ClientModel.INSTANCE.getServers().forEach(server -> server.getConcordApi().disconnect());
+		});
 		stage.show();
 	}
 

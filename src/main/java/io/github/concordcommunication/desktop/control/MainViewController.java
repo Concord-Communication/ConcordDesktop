@@ -28,16 +28,11 @@ public class MainViewController {
 
 	public void initialize() {
 		ClientModel.INSTANCE.getServers().addListener(new ServersListChangeListener(serversAccordion, centerViewPane));
-		var serverConnectData = new ServerConnectData("localhost:8080", "admin", "kiSnfO4U5GUvdxDYWT7omb7eA2zHyuja7kS7BJgX");
+		var serverConnectData = new ServerConnectData("localhost:8080", "admin", "testpass");
 		var api = new ConcordApi(serverConnectData.address(), serverConnectData.username(), serverConnectData.password());
-		var connectionFuture = api.connect();
-		connectionFuture.thenComposeAsync(unused -> api.getJson("/server", ObjectNode.class))
-				.thenAccept(data -> {
-					String name = data.get("name").asText();
-					String description = data.get("description").asText();
-					Long iconId = data.get("iconId").asLong();
-					var server = new Server(api, name, description, iconId);
-					ClientModel.INSTANCE.addServer(server);
+		api.connect().thenComposeAsync(unused -> api.getServer())
+				.thenAccept(server -> {
+					ClientModel.INSTANCE.addServer(new Server(server.getApi(), server.getName(), server.getDescription(), server.getIconId()));
 				});
 	}
 

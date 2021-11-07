@@ -16,21 +16,18 @@ import java.util.function.Consumer;
 import static io.github.concordcommunication.desktop.client.ConcordApi.mapper;
 
 public class ConcordWebsocketClient extends WebSocketClient {
-	private final List<WeakReference<ConcordEventListener>> eventListeners = new CopyOnWriteArrayList<>();
+	private final List<ConcordEventListener> eventListeners = new CopyOnWriteArrayList<>();
 
 	public ConcordWebsocketClient(URI serverUri) {
 		super(serverUri);
 	}
 
 	public void addListener(ConcordEventListener listener) {
-		this.eventListeners.add(new WeakReference<>(listener));
+		this.eventListeners.add(listener);
 	}
 
 	private void forEach(Consumer<ConcordEventListener> c) {
-		this.eventListeners.forEach(ref -> {
-			var listener = ref.get();
-			if (listener != null) c.accept(listener);
-		});
+		this.eventListeners.forEach(c::accept);
 	}
 
 	@Override

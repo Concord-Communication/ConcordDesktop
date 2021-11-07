@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.scene.image.Image;
 
 public class Server {
@@ -17,7 +18,7 @@ public class Server {
 	private final StringProperty description;
 	private final ObjectProperty<Image> icon;
 	private final ObservableList<Channel> channels;
-	private final ObservableList<User> users;
+	private final ObservableMap<Long, User> users;
 
 	public Server(ConcordApi concordApi, String name, String description, Long iconId) {
 		this.concordApi = concordApi;
@@ -25,7 +26,7 @@ public class Server {
 		this.description = new SimpleStringProperty(description);
 		this.icon = new SimpleObjectProperty<>(null);
 		this.channels = FXCollections.observableArrayList();
-		this.users = FXCollections.observableArrayList();
+		this.users = FXCollections.observableHashMap();
 		if (iconId != null) {
 			concordApi.getImage(iconId).thenAcceptAsync(this.icon::setValue);
 		}
@@ -38,7 +39,10 @@ public class Server {
 				});
 		concordApi.getJson("/users", ArrayNode.class)
 				.thenAcceptAsync(usersArray -> {
-					System.out.println(usersArray.toPrettyString());
+					for (var userJson : usersArray) {
+						var user = User.fromJson(this, (ObjectNode) userJson);
+						this.users.put(user.getId(), user);
+					}
 				});
 	}
 
@@ -72,5 +76,9 @@ public class Server {
 
 	public ObservableList<Channel> getChannels() {
 		return channels;
+	}
+
+	public ObservableMap<Long, User> getUsers() {
+		return users;
 	}
 }

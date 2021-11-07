@@ -6,6 +6,7 @@ module io.github.concordcommunication.desktop {
 	requires org.controlsfx.controls;
 	requires com.dlsc.formsfx;
 	requires org.kordamp.bootstrapfx.core;
+	requires easybind;
 	requires Java.WebSocket;
 	requires com.fasterxml.jackson.core;
 	requires com.fasterxml.jackson.annotation;
@@ -18,4 +19,5 @@ module io.github.concordcommunication.desktop {
 	opens io.github.concordcommunication.desktop.control to javafx.fxml;
 	opens io.github.concordcommunication.desktop.client.dto.websocket to com.fasterxml.jackson.databind;
 	opens io.github.concordcommunication.desktop.client.dto.api to com.fasterxml.jackson.databind;
+	opens io.github.concordcommunication.desktop.client to com.fasterxml.jackson.databind;
 }

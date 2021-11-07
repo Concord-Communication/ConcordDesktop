@@ -1,30 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<VBox minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.2"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="io.github.concordcommunication.desktop.control.ServerViewController">
+
+<VBox minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.concordcommunication.desktop.control.ServerViewController">
    <FlowPane alignment="CENTER_LEFT" prefHeight="30.0">
       <padding>
-         <Insets left="5.0" right="5.0"/>
+         <Insets left="5.0" right="5.0" />
       </padding>
-      <Label fx:id="channelNameLabel" text="Channel Name"/>
-      <Separator orientation="VERTICAL"/>
-      <Label fx:id="channelDescriptionLabel" text="Channel description"/>
+      <Label fx:id="channelNameLabel" text="Channel Name" />
+      <Separator orientation="VERTICAL" />
+      <Label fx:id="channelDescriptionLabel" text="Channel description" />
    </FlowPane>
-   <ScrollPane hbarPolicy="NEVER" vbarPolicy="ALWAYS" prefHeight="200" VBox.vgrow="ALWAYS">
-      <VBox fx:id="messagesVBox"/>
+   <ScrollPane fx:id="chatScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="200" vbarPolicy="ALWAYS" VBox.vgrow="ALWAYS">
+      <VBox fx:id="messagesVBox" spacing="3" />
    </ScrollPane>
    <HBox prefHeight="100.0">
-      <TextArea fx:id="chatTextArea" wrapText="true"
-                HBox.hgrow="ALWAYS"/>
+      <TextArea fx:id="chatTextArea" wrapText="true" HBox.hgrow="ALWAYS" />
       <VBox>
-         <Button mnemonicParsing="false" text="Button"/>
-         <Button mnemonicParsing="false" text="Button"/>
-         <Button mnemonicParsing="false" text="Button"/>
-         <Button mnemonicParsing="false" text="Button"/>
+         <Button mnemonicParsing="false" text="Button" />
+         <Button mnemonicParsing="false" text="Button" />
+         <Button mnemonicParsing="false" text="Button" />
+         <Button mnemonicParsing="false" text="Button" />
       </VBox>
    </HBox>
 </VBox>

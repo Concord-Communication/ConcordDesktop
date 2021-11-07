@@ -33,7 +33,7 @@ public class ConcordApi {
 	private String username;
 	private String password;
 
-	private String token;
+	private volatile String token;
 	private String baseApiUrl;
 
 	public ConcordApi(String address, String username, String password) {
@@ -64,6 +64,23 @@ public class ConcordApi {
 
 					});
 		});
+	}
+
+	public CompletableFuture<Void> disconnect() {
+		CompletableFuture<Void> future = new CompletableFuture<>();
+		this.executorService.submit(() -> {
+			this.token = null;
+			if (this.webSocketClient != null && this.webSocketClient.isOpen()) {
+				try {
+					this.webSocketClient.closeBlocking();
+				} catch (InterruptedException e) {
+					future.completeExceptionally(e);
+				}
+			}
+			future.complete(null);
+		});
+		this.executorService.shutdown();
+		return future;
 	}
 
 	public void addListener(ConcordEventListener listener) {
@@ -120,8 +137,9 @@ public class ConcordApi {
 				.thenApplyAsync(resp -> new Image(resp.body()));
 	}
 
-	public CompletableFuture<ServerData> getServerData() {
-		return getJson("/server", ServerData.class);
+	public CompletableFuture<Server> getServer() {
+		return getJson("/server", ServerData.class)
+				.thenApply(data -> new Server(this, data.name(), data.description(), data.iconId(), data.defaultChannelId()));
 	}
 
 	public static HttpRequest.BodyPublisher jsonPublisher(Object obj) {
