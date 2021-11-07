@@ -8,6 +8,8 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.util.*;
+
 public class Channel {
 	private final ConcordApi api;
 	private final Server server;
@@ -16,7 +18,11 @@ public class Channel {
 	private final StringProperty description;
 	private final IntegerProperty ordinality;
 	private final ObservableList<Channel> children;
-	private final ObservableList<Chat> chats;
+	private final List<Chat> chats;
+	private final BooleanProperty atEnd;
+	private final BooleanProperty atStart;
+
+	private final Set<ChannelChatListener> chatListeners;
 
 	public Channel(Server server, long id, String name, String description, int ordinality) {
 		this.api = server.getConcordApi();
@@ -26,15 +32,10 @@ public class Channel {
 		this.description = new SimpleStringProperty(description);
 		this.ordinality = new SimpleIntegerProperty(ordinality);
 		this.children = FXCollections.observableArrayList();
-		this.chats = FXCollections.observableArrayList();
-		this.api.getJson("/channels/" + id + "/chats/latest", ChatResponse[].class)
-				.thenAcceptAsync(chatsArray -> {
-					this.chats.clear();
-					for (var c : chatsArray) {
-						Chat chat = new Chat(this, c.id(), c.createdAt(), c.authorId(), c.channelId(), c.threadId(), c.content(), c.edited());
-						this.chats.add(0, chat);
-					}
-				});
+		this.chats = new LinkedList<>();
+		this.atEnd = new SimpleBooleanProperty(true);
+		this.atStart = new SimpleBooleanProperty(false);
+		this.chatListeners = new HashSet<>();
 	}
 
 	public static Channel fromJson(Server server, ObjectNode node) {
@@ -52,13 +53,45 @@ public class Channel {
 		return channel;
 	}
 
+	public void addChatListener(ChannelChatListener listener) {
+		this.chatListeners.add(listener);
+	}
+
+	public void fetchLatest() {
+		this.api.getJson("/channels/" + this.getId() + "/chats/latest", ChatResponse[].class)
+				.thenAcceptAsync(chatsArray -> {
+					var newChats = Arrays.stream(chatsArray)
+							.map(c -> new Chat(this, c.id(), c.createdAt(), c.authorId(), c.channelId(), c.threadId(), c.content(), c.edited()))
+							.toList();
+					this.chats.clear();
+					this.chats.addAll(newChats);
+					this.chatListeners.forEach(l -> l.chatsSet(newChats));
+				});
+	}
+
 	public void appendChat(Chat chat) {
 		if (!this.chats.contains(chat)) {
 			this.chats.add(chat);
-			if (this.chats.size() > 100) {
-				this.chats.remove(0);
-			}
+			this.chatListeners.forEach(l -> l.chatsAppended(List.of(chat)));
 		}
+	}
+
+	public void fetchBackward() {
+		String url = "/chats?channelId=" + this.getId();
+		if (!this.chats.isEmpty()) {
+			url += "&before=" + this.chats.get(0).getCreatedAt();
+		}
+		System.out.println("Fetching from " + url);
+		this.api.getJson(url, ChatResponse[].class)
+				.thenAcceptAsync(chatsArray -> {
+					var newChats = Arrays.stream(chatsArray)
+							.map(c -> new Chat(this, c.id(), c.createdAt(), c.authorId(), c.channelId(), c.threadId(), c.content(), c.edited()))
+							.filter(c -> !this.chats.contains(c))
+							.toList();
+					this.chats.addAll(0, newChats);
+					this.chatListeners.forEach(l -> l.chatsPrepended(newChats));
+					System.out.println("New chat count: " + this.chats.size());
+				});
 	}
 
 	public Server getServer() {
@@ -99,10 +132,6 @@ public class Channel {
 
 	public ObservableList<Channel> getChildren() {
 		return children;
-	}
-
-	public ObservableList<Chat> getChats() {
-		return chats;
 	}
 
 	@Override

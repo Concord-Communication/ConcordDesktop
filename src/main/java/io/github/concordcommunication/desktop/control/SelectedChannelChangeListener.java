@@ -4,7 +4,6 @@ import io.github.concordcommunication.desktop.control.channel.ChannelChatAppende
 import io.github.concordcommunication.desktop.control.channel.ChannelChatAreaKeyListener;
 import io.github.concordcommunication.desktop.control.channel.ChannelChatListChangeListener;
 import io.github.concordcommunication.desktop.model.Channel;
-import io.github.concordcommunication.desktop.view.ChatElement;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
@@ -19,6 +18,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SelectedChannelChangeListener implements ChangeListener<TreeItem<Channel>> {
 	private final AnchorPane centerChannelViewPane;
@@ -50,26 +51,35 @@ public class SelectedChannelChangeListener implements ChangeListener<TreeItem<Ch
 		}
 		ServerViewController serverViewController = serverViewLoader.getController();
 		var scrollPane = serverViewController.chatScrollPane;
+		var messagesBox = serverViewController.messagesVBox;
 
 		serverViewController.channelNameLabel.textProperty().bind(channel.nameProperty());
 		serverViewController.channelDescriptionLabel.textProperty().bind(channel.descriptionProperty());
-		channel.getChats().addListener(new ChannelChatListChangeListener(serverViewController.messagesVBox.getChildren(), scrollPane));
+		channel.addChatListener(new ChannelChatListChangeListener(messagesBox.getChildren()));
+		channel.fetchLatest();
+
 		// Weird trick to clamp scrollpane to bottom when user scrolls to bottom.
-		InvalidationListener heightListener = observable -> scrollPane.setVvalue(1.0);
+		AtomicBoolean scrollClamp = new AtomicBoolean(true);
+		AtomicReference<Double> lastHeight = new AtomicReference<>(messagesBox.getHeight());
+		InvalidationListener heightListener = observable -> {
+			if (scrollClamp.get()) scrollPane.setVvalue(1.0);
+		};
 		scrollPane.vvalueProperty().addListener((observable, oldValue, newValue) -> {
-			if (oldValue.doubleValue() < 1.0 && newValue.doubleValue() == 1.0) {
-				serverViewController.messagesVBox.heightProperty().addListener(heightListener);
-			} else if (oldValue.doubleValue() == 1.0 && newValue.doubleValue() < 1.0) {
-				serverViewController.messagesVBox.heightProperty().removeListener(heightListener);
-			}
+				if (oldValue.doubleValue() < 1.0 && newValue.doubleValue() == 1.0) {
+					scrollClamp.set(true);
+					lastHeight.set(messagesBox.getHeight());
+				} else if (oldValue.doubleValue() == 1.0 && newValue.doubleValue() < 1.0 &&
+						lastHeight.get().equals(messagesBox.getHeight())) {
+					scrollClamp.set(false);
+				} else if (oldValue.doubleValue() > 0 && newValue.doubleValue() == 0) {
+					// load more chats.
+					channel.fetchBackward();
+				}
 		});
+		messagesBox.heightProperty().addListener(heightListener);
+
 		channel.getServer().getConcordApi().addListener(new ChannelChatAppender(channel));
 		serverViewController.chatTextArea.addEventHandler(KeyEvent.KEY_PRESSED, new ChannelChatAreaKeyListener(channel, serverViewController.chatTextArea));
-		// init with current chats
-		Platform.runLater(() -> {
-			var nodes = channel.getChats().stream().map(ChatElement::new).toList();
-			serverViewController.messagesVBox.getChildren().addAll(nodes);
-		});
 
 		AnchorPane.setTopAnchor(serverView, 0.0);
 		AnchorPane.setBottomAnchor(serverView, 0.0);
