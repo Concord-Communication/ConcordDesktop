@@ -4,9 +4,11 @@ import io.github.concordcommunication.desktop.model.ChannelChatListener;
 import io.github.concordcommunication.desktop.model.Chat;
 import io.github.concordcommunication.desktop.view.ChatElement;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,6 +41,7 @@ public class ChannelChatListChangeListener implements ChannelChatListener {
 				return node;
 			}).sorted().toList();
 			chatDisplayList.addAll(nodes);
+			FXCollections.sort(chatDisplayList, Comparator.comparingLong(n -> ((ChatElement) n).getChat().getCreatedAt()));
 		});
 	}
 
@@ -51,6 +54,7 @@ public class ChannelChatListChangeListener implements ChannelChatListener {
 				return node;
 			}).toList();
 			chatDisplayList.addAll(0, nodes);
+			FXCollections.sort(chatDisplayList, Comparator.comparingLong(n -> ((ChatElement) n).getChat().getCreatedAt()));
 		});
 	}
 
